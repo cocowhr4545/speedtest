@@ -8,7 +8,9 @@
 // data reported to main thread
 var testState = -1; // -1=not started, 0=starting, 1=download test, 2=ping+jitter test, 3=upload test, 4=finished, 5=abort
 var dlStatus = ""; // download speed in megabit/s with 2 decimal digits
+var maxDlStatus = "";
 var ulStatus = ""; // upload speed in megabit/s with 2 decimal digits
+var maxUlStatus = "";
 var pingStatus = ""; // ping in milliseconds with 2 decimal digits
 var jitterStatus = ""; // jitter in milliseconds with 2 decimal digits
 var clientIp = ""; // client's IP address as reported by getIP.php
@@ -62,10 +64,9 @@ var settings = {
 	ping_allowPerformanceApi: true, // if enabled, the ping test will attempt to calculate the ping more precisely using the Performance API. Currently works perfectly in Chrome, badly in Edge, and not at all in Firefox. If Performance API is not supported or the result is obviously wrong, a fallback is provided.
 	overheadCompensationFactor: 1.06, //can be changed to compensatie for transport overhead. (see doc.md for some other values)
 	useMebibits: false, //if set to true, speed will be reported in mebibits/s instead of megabits/s
-	telemetry_level: 0, // 0=disabled, 1=basic (results only), 2=full (results and timing) 3=debug (results+log)
+	telemetry_level: 2, // 0=disabled, 1=basic (results only), 2=full (results and timing) 3=debug (results+log)
 	url_telemetry: "results/telemetry.php", // path to the script that adds telemetry data to the database
-	telemetry_extra: "", //extra data that can be passed to the telemetry through the settings
-    forceIE11Workaround: false //when set to true, it will foce the IE11 upload test on all browsers. Debug only
+	telemetry_extra: "" //extra data that can be passed to the telemetry through the settings
 };
 
 var xhr = null; // array of currently active xhr requests
@@ -95,7 +96,9 @@ this.addEventListener("message", function(e) {
 			JSON.stringify({
 				testState: testState,
 				dlStatus: dlStatus,
+				maxDlStatus: maxDlStatus,
 				ulStatus: ulStatus,
+				maxUlStatus: maxUlStatus,
 				pingStatus: pingStatus,
 				clientIp: clientIp,
 				jitterStatus: jitterStatus,
@@ -254,7 +257,9 @@ this.addEventListener("message", function(e) {
 		if (settings.telemetry_level > 1) sendTelemetry(function() {});
 		testState = 5; //set test as aborted
 		dlStatus = "";
+		maxDlStatus= "";
 		ulStatus = "";
+		maxUlStatus= "";
 		pingStatus = "";
 		jitterStatus = "";
         clientIp = "";
@@ -409,6 +414,9 @@ function dlTest(done) {
 				}
 				//update status
 				dlStatus = ((speed * 8 * settings.overheadCompensationFactor) / (settings.useMebibits ? 1048576 : 1000000)).toFixed(2); // speed is multiplied by 8 to go from bytes to bits, overhead compensation is applied, then everything is divided by 1048576 or 1000000 to go to megabits/mebibits
+				if(dlStatus > maxDlStatus){
+					maxDlStatus = dlStatus;
+				}
 				if ((t + bonusT) / 1000.0 > settings.time_dl_max || failed) {
 					// test is over, stop streams and timer
 					if (failed || isNaN(dlStatus)) dlStatus = "Fail";
@@ -557,6 +565,9 @@ function ulTest(done) {
 					}
 					//update status
 					ulStatus = ((speed * 8 * settings.overheadCompensationFactor) / (settings.useMebibits ? 1048576 : 1000000)).toFixed(2); // speed is multiplied by 8 to go from bytes to bits, overhead compensation is applied, then everything is divided by 1048576 or 1000000 to go to megabits/mebibits
+					if(ulStatus > maxUlStatus){
+						maxUlStatus = ulStatus;
+					}
 					if ((t + bonusT) / 1000.0 > settings.time_ul_max || failed) {
 						// test is over, stop streams and timer
 						if (failed || isNaN(ulStatus)) ulStatus = "Fail";
