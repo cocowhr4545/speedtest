@@ -109,6 +109,8 @@ function updateUI(forced){
 	drawMeter(I("ulMeter"),mbpsToAmount(Number(uiData.ulStatus*(status==3?oscillate():1))),meterBk,ulColor,Number(uiData.ulProgress),progColor);
 	I("pingText").textContent=format(uiData.pingStatus);
 	I("jitText").textContent=format(uiData.jitterStatus);
+	I("maxDlText").textContent=format(uiData.maxDlStatus);
+	I("maxUlText").textContent=format(uiData.maxUlStatus);
 }
 function oscillate(){
 	return 1+0.02*Math.sin(Date.now()/100);
@@ -128,6 +130,8 @@ function initUI(){
 	I("ulText").textContent="";
 	I("pingText").textContent="";
 	I("jitText").textContent="";
+	I("maxDlText").textContent="";
+	I("maxUlText").textContent="";
 	I("ip").textContent="";
 }
 </script>
@@ -294,6 +298,18 @@ function initUI(){
 				<div class="testName">Jitter</div>
 				<div id="jitText" class="meterText" style="color:#AA6060"></div>
 				<div class="unit">ms</div>
+			</div>
+		</div>
+		<div class="testGroup">
+			<div class="testArea2">
+				<div class="testName">Max Download</div>
+				<div id="maxDlText" class="meterText" style="color:#AA6060"></div>
+				<div class="unit">Mbps</div>
+			</div>
+			<div class="testArea2">
+				<div class="testName">Max Upload</div>
+				<div id="maxUlText" class="meterText" style="color:#AA6060"></div>
+				<div class="unit">Mbps</div>
 			</div>
 		</div>
 		<div class="testGroup">
